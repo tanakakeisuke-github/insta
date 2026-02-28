@@ -1,646 +1,382 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Instagram Multi-Account Viewer</title>
-    <style>
-          * {
-                  margin: 0;
-                  padding: 0;
-                  box-sizing: border-box;
-          }
-
-          body {
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  min-height: 100vh;
-                  color: #333;
-          }
-
-          .header {
-                  background: rgba(255, 255, 255, 0.95);
-                  backdrop-filter: blur(10px);
-                  padding: 16px 24px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: space-between;
-                  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-                  position: sticky;
-                  top: 0;
-                  z-index: 100;
-          }
-
-          .header h1 {
-                  font-size: 20px;
-                  background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
-                  -webkit-background-clip: text;
-                  -webkit-text-fill-color: transparent;
-                  background-clip: text;
-          }
-
-          .header-actions {
-                  display: flex;
-                  gap: 8px;
-          }
-
-          .btn {
-                  padding: 8px 16px;
-                  border: none;
-                  border-radius: 8px;
-                  cursor: pointer;
-                  font-size: 13px;
-                  font-weight: 600;
-                  transition: all 0.2s;
-          }
-
-          .btn-primary {
-                  background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
-                  color: white;
-          }
-
-          .btn-primary:hover {
-                  transform: translateY(-1px);
-                  box-shadow: 0 4px 12px rgba(131, 58, 180, 0.4);
-          }
-
-          .btn-secondary {
-                  background: #f0f0f0;
-                  color: #333;
-          }
-
-          .btn-secondary:hover {
-                  background: #e0e0e0;
-          }
-
-          .btn-open-all {
-                  background: linear-gradient(135deg, #00c6ff, #0072ff);
-                  color: white;
-          }
-
-          .btn-open-all:hover {
-                  transform: translateY(-1px);
-                  box-shadow: 0 4px 12px rgba(0, 114, 255, 0.4);
-          }
-
-          /* Setup Screen */
-          .setup-screen {
-                  max-width: 600px;
-                  margin: 40px auto;
-                  padding: 0 20px;
-          }
-
-          .setup-card {
-                  background: rgba(255, 255, 255, 0.95);
-                  border-radius: 16px;
-                  padding: 32px;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-          }
-
-          .setup-card h2 {
-                  margin-bottom: 8px;
-                  font-size: 24px;
-          }
-
-          .setup-card p {
-                  color: #666;
-                  margin-bottom: 24px;
-                  font-size: 14px;
-                  line-height: 1.6;
-          }
-
-          .account-inputs {
-                  display: flex;
-                  flex-direction: column;
-                  gap: 12px;
-                  margin-bottom: 24px;
-          }
-
-          .account-input-row {
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-          }
-
-          .account-input-row span {
-                  font-size: 20px;
-                  width: 32px;
-                  text-align: center;
-          }
-
-          .account-input-row input {
-                  flex: 1;
-                  padding: 12px 16px;
-                  border: 2px solid #e0e0e0;
-                  border-radius: 10px;
-                  font-size: 15px;
-                  transition: border-color 0.2s;
-                  outline: none;
-          }
-
-          .account-input-row input:focus {
-                  border-color: #833ab4;
-          }
-
-          .account-input-row input::placeholder {
-                  color: #aaa;
-          }
-
-          .save-btn {
-                  width: 100%;
-                  padding: 14px;
-                  font-size: 16px;
-          }
-
-          .note {
-                  margin-top: 16px;
-                  padding: 12px 16px;
-                  background: #fff3cd;
-                  border-radius: 8px;
-                  font-size: 13px;
-                  color: #856404;
-                  line-height: 1.5;
-          }
-
-          /* Dashboard */
-          .dashboard {
-                  display: none;
-                  padding: 16px;
-          }
-
-          .dashboard.active {
-                  display: block;
-          }
-
-          .view-controls {
-                  display: flex;
-                  gap: 8px;
-                  margin-bottom: 16px;
-                  flex-wrap: wrap;
-          }
-
-          .view-btn {
-                  padding: 6px 14px;
-                  border: 2px solid rgba(255, 255, 255, 0.3);
-                  background: rgba(255, 255, 255, 0.15);
-                  color: white;
-                  border-radius: 20px;
-                  cursor: pointer;
-                  font-size: 13px;
-                  font-weight: 600;
-                  transition: all 0.2s;
-          }
-
-          .view-btn:hover, .view-btn.active {
-                  background: rgba(255, 255, 255, 0.95);
-                  color: #333;
-                  border-color: transparent;
-          }
-
-          /* Grid Layout */
-          .accounts-grid {
-                  display: grid;
-                  gap: 16px;
-                  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          }
-
-          .accounts-grid.layout-1 {
-                  grid-template-columns: 1fr;
-                  max-width: 800px;
-                  margin: 0 auto;
-          }
-
-          .accounts-grid.layout-2 {
-                  grid-template-columns: repeat(2, 1fr);
-          }
-
-          .accounts-grid.layout-3 {
-                  grid-template-columns: repeat(3, 1fr);
-          }
-
-          .account-card {
-                  background: white;
-                  border-radius: 16px;
-                  overflow: hidden;
-                  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-                  transition: transform 0.2s, box-shadow 0.2s;
-          }
-
-          .account-card:hover {
-                  transform: translateY(-2px);
-                  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-          }
-
-          .account-card-header {
-                  padding: 12px 16px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: space-between;
-                  background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
-                  color: white;
-          }
-
-          .account-card-header .username {
-                  font-weight: 700;
-                  font-size: 15px;
-          }
-
-          .account-card-header .actions {
-                  display: flex;
-                  gap: 6px;
-          }
-
-          .account-card-header .action-btn {
-                  background: rgba(255, 255, 255, 0.25);
-                  border: none;
-                  color: white;
-                  width: 32px;
-                  height: 32px;
-                  border-radius: 8px;
-                  cursor: pointer;
-                  font-size: 14px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  transition: background 0.2s;
-          }
-
-          .account-card-header .action-btn:hover {
-                  background: rgba(255, 255, 255, 0.4);
-          }
-
-          .account-card-body {
-                  height: 600px;
-                  position: relative;
-          }
-
-          .account-card-body iframe {
-                  width: 100%;
-                  height: 100%;
-                  border: none;
-          }
-
-          .iframe-blocked {
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  justify-content: center;
-                  height: 100%;
-                  padding: 32px;
-                  text-align: center;
-                  background: #fafafa;
-          }
-
-          .iframe-blocked .icon {
-                  font-size: 48px;
-                  margin-bottom: 16px;
-          }
-
-          .iframe-blocked h3 {
-                  margin-bottom: 8px;
-                  color: #333;
-          }
-
-          .iframe-blocked p {
-                  color: #666;
-                  font-size: 14px;
-                  margin-bottom: 16px;
-                  line-height: 1.5;
-          }
-
-          .iframe-blocked .btn {
-                  padding: 12px 24px;
-                  font-size: 15px;
-          }
-
-          /* Quick Links */
-          .quick-links {
-                  display: flex;
-                  gap: 8px;
-                  padding: 8px 16px;
-                  background: #f8f8f8;
-                  border-top: 1px solid #eee;
-          }
-
-          .quick-link {
-                  padding: 4px 10px;
-                  background: #eee;
-                  border: none;
-                  border-radius: 12px;
-                  cursor: pointer;
-                  font-size: 12px;
-                  color: #555;
-                  transition: all 0.2s;
-          }
-
-          .quick-link:hover {
-                  background: #ddd;
-          }
-
-          /* Responsive */
-          @media (max-width: 768px) {
-                  .accounts-grid {
-                            grid-template-columns: 1fr !important;
-                  }
-
-                  .header h1 {
-                            font-size: 16px;
-                  }
-
-                  .account-card-body {
-                            height: 500px;
-                  }
-          }
-
-          /* Modal */
-          .modal-overlay {
-                  display: none;
-                  position: fixed;
-                  top: 0;
-                  left: 0;
-                  right: 0;
-                  bottom: 0;
-                  background: rgba(0, 0, 0, 0.5);
-                  z-index: 200;
-                  align-items: center;
-                  justify-content: center;
-          }
-
-          .modal-overlay.active {
-                  display: flex;
-          }
-
-          .modal {
-                  background: white;
-                  border-radius: 16px;
-                  padding: 32px;
-                  max-width: 500px;
-                  width: 90%;
-                  max-height: 80vh;
-                  overflow-y: auto;
-          }
-
-          .modal h2 {
-                  margin-bottom: 16px;
-          }
-
-          .modal .account-inputs {
-                  margin-bottom: 16px;
-          }
-
-          .modal-actions {
-                  display: flex;
-                  gap: 8px;
-                  justify-content: flex-end;
-          }
-        </style>
-  </head>
-  <body>
-
-      <!-- Header -->
-      <div class="header" id="mainHeader" style="display:none;">
-            <h1>Instagram Multi-Account Viewer</h1>
-          <div class="header-actions">
-                <button class="btn btn-open-all" onclick="openAllInTabs()">
-                        全アカウントをタブで開く
-                </button>button>
-                <button class="btn btn-secondary" onclick="showEditModal()">
-                        設定
-                </button>button>
-          </div>div>
-      </div>div>
-  
-    <!-- Setup Screen -->
-    <div class="setup-screen" id="setupScreen">
-        <div class="setup-card">
-              <h2>Instagram アカウント設定</h2>
-              <p>
-                        閲覧したいInstagramアカウントのユーザー名を入力してください（@なし）。<br>
-                        入力したアカウントのページを一画面で並べて表示します。
-              </p>
-                <div class="account-inputs" id="setupInputs">
-                          <div class="account-input-row">
-                                      <span>1</span>
-                                    <input type="text" placeholder="username1" class="setup-username">
-                          </div>div>
-                        <div class="account-input-row">
-                                  <span>2</span>
-                                  <input type="text" placeholder="username2" class="setup-username">
-                        </div>div>
-                        <div class="account-input-row">
-                                  <span>3</span>
-                                  <input type="text" placeholder="username3" class="setup-username">
-                        </div>div>
-                        <div class="account-input-row">
-                                  <span>4</span>
-                                  <input type="text" placeholder="username4" class="setup-username">
-                        </div>div>
-                        <div class="account-input-row">
-                                  <span>5</span>
-                                  <input type="text" placeholder="username5" class="setup-username">
-                        </div>div>
-                </div>div>
-              <button class="btn btn-primary save-btn" onclick="saveAccounts()">
-                      ダッシュボードを表示
-              </button>button>
-              <div class="note">
-                      <strong>注意:</strong> Instagramはiframeでの埋め込みをブロックする場合があります。
-                      その場合は「新しいタブで開く」ボタンから各アカウントにアクセスしてください。
-                      データはブラウザのローカルストレージに保存され、外部には送信されません。
-              </div>div>
-        </div>div>
-    </div>div>
-  
-    <!-- Dashboard -->
-    <div class="dashboard" id="dashboard">
-        <div class="view-controls">
-              <button class="view-btn active" onclick="setLayout('auto', this)">自動</button>button>
-              <button class="view-btn" onclick="setLayout('1', this)">1列</button>button>
-              <button class="view-btn" onclick="setLayout('2', this)">2列</button>button>
-              <button class="view-btn" onclick="setLayout('3', this)">3列</button>button>
-        </div>div>
-        <div class="accounts-grid" id="accountsGrid"></div>div>
-    </div>div>
-  
-    <!-- Edit Modal -->
-    <div class="modal-overlay" id="editModal">
-        <div class="modal">
-              <h2>アカウント設定</h2>
-              <div class="account-inputs" id="modalInputs"></div>div>
-              <div class="modal-actions">
-                      <button class="btn btn-secondary" onclick="closeEditModal()">キャンセル</button>button>
-                      <button class="btn btn-primary" onclick="saveFromModal()">保存</button>button>
-              </div>div>
-        </div>div>
-    </div>div>
-  
-    <script>
-          // State
-          let accounts = [];
-
-          // Initialize
-          function init() {
-                  const saved = localStorage.getItem('insta_accounts');
-                  if (saved) {
-                            accounts = JSON.parse(saved);
-                            if (accounts.length > 0 && accounts.some(a => a.trim() !== '')) {
-                                        showDashboard();
-                                        return;
-                            }
-                  }
-                  showSetup();
-          }
-
-          // Show setup screen
-          function showSetup() {
-                  document.getElementById('setupScreen').style.display = 'block';
-                  document.getElementById('dashboard').classList.remove('active');
-                  document.getElementById('mainHeader').style.display = 'none';
-          }
-
-          // Save accounts from setup
-          function saveAccounts() {
-                  const inputs = document.querySelectorAll('.setup-username');
-                  accounts = Array.from(inputs).map(input => input.value.trim().replace('@', ''));
-
-                  if (!accounts.some(a => a !== '')) {
-                            alert('少なくとも1つのアカウント名を入力してください');
-                            return;
-                  }
-
-                  localStorage.setItem('insta_accounts', JSON.stringify(accounts));
-                  showDashboard();
-          }
-
-          // Show dashboard
-          function showDashboard() {
-                  document.getElementById('setupScreen').style.display = 'none';
-                  document.getElementById('mainHeader').style.display = 'flex';
-                  document.getElementById('dashboard').classList.add('active');
-                  renderAccounts();
-          }
-
-          // Render account cards
-          function renderAccounts() {
-                  const grid = document.getElementById('accountsGrid');
-                  grid.innerHTML = '';
-
-                  accounts.forEach((username, index) => {
-                            if (!username) return;
-
-                            const card = document.createElement('div');
-                            card.className = 'account-card';
-                            card.innerHTML = `
-                                      <div class="account-card-header">
-                                                  <span class="username">@${username}</span>
-                                                              <div class="actions">
-                                                                            <button class="action-btn" onclick="openInNewTab('${username}')" title="新しいタブで開く">↗</button>
-                                                                                          <button class="action-btn" onclick="reloadIframe(${index})" title="リロード">↻</button>
-                                                                                                      </div>
-                                                                                                                </div>
-                <div class="account-card-body" id="card-body-${index}">
-                            <div class="iframe-blocked">
-                                          <div class="icon">📸</div>
-                                                        <h3>@${username}</h3>
-                                                                      <p>Instagramはiframeでの表示をブロックしています。<br>下のボタンから新しいタブで開いてください。</p>
-                                                                                    <button class="btn btn-primary" onclick="openInNewTab('${username}')">
-                                                                                                    Instagramで開く
-                                                                                                                  </button>
-                                                                                                                              </div>
-                                                                                                                                        </div>
-                                                                                                                                                  <div class="quick-links">
-                                                                                                                                                              <button class="quick-link" onclick="openInNewTab('${username}')">プロフィール</button>
-                                                                                                                                                                          <button class="quick-link" onclick="openInNewTab('${username}', '/feed')">フィード</button>
-                                                                                                                                                                                      <button class="quick-link" onclick="openStories('${username}')">ストーリー</button>
-                                                                                                                                                                                                </div>
-                                                                                                                                                                                                        `;
-                            grid.appendChild(card);
-                  });
-          }
-
-          // Open in new tab
-          function openInNewTab(username, path = '') {
-                  window.open(`https://www.instagram.com/${username}${path}`, '_blank');
-          }
-
-          // Open stories
-          function openStories(username) {
-                  window.open(`https://www.instagram.com/stories/${username}/`, '_blank');
-          }
-
-          // Open all accounts in tabs
-          function openAllInTabs() {
-                  accounts.forEach(username => {
-                            if (username) {
-                                        window.open(`https://www.instagram.com/${username}`, '_blank');
-                            }
-                  });
-          }
-
-          // Reload iframe
-          function reloadIframe(index) {
-                  const body = document.getElementById(`card-body-${index}`);
-                  const iframe = body.querySelector('iframe');
-                  if (iframe) {
-                            iframe.src = iframe.src;
-                  }
-          }
-
-          // Set layout
-          function setLayout(cols, btn) {
-                  const grid = document.getElementById('accountsGrid');
-                  grid.className = 'accounts-grid';
-
-                  if (cols !== 'auto') {
-                            grid.classList.add(`layout-${cols}`);
-                  }
-
-                  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-                  if (btn) btn.classList.add('active');
-          }
-
-          // Edit modal
-          function showEditModal() {
-                  const container = document.getElementById('modalInputs');
-                  container.innerHTML = '';
-
-                  for (let i = 0; i < 5; i++) {
-                            container.innerHTML += `
-                                      <div class="account-input-row">
-                                                  <span>${i + 1}</span>
-                                                              <input type="text" placeholder="username" class="modal-username" value="${accounts[i] || ''}">
-                                                                        </div>
-                                                                                `;
-                  }
-
-                  document.getElementById('editModal').classList.add('active');
-          }
-
-          function closeEditModal() {
-                  document.getElementById('editModal').classList.remove('active');
-          }
-
-          function saveFromModal() {
-                  const inputs = document.querySelectorAll('.modal-username');
-                  accounts = Array.from(inputs).map(input => input.value.trim().replace('@', ''));
-                  localStorage.setItem('insta_accounts', JSON.stringify(accounts));
-                  closeEditModal();
-                  renderAccounts();
-          }
-
-          // Close modal on overlay click
-          document.getElementById('editModal').addEventListener('click', function(e) {
-                  if (e.target === this) closeEditModal();
-          });
-
-          // Init
-          init();
-    </script>
-
-  </body>
-</html>html>
-    </script></strong></span></span>
-              </p></h2></h1>
-  </body>
-    </style></title>
-  </head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram Multi-Account Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    .header {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header h1 {
+      font-size: 20px;
+      background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-actions { display: flex; gap: 8px; }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(131,58,180,0.4);
+    }
+    .btn-secondary { background: #f0f0f0; color: #333; }
+    .btn-secondary:hover { background: #e0e0e0; }
+    .btn-open-all {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+    }
+    .btn-open-all:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,114,255,0.4);
+    }
+    .setup-screen { max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    .setup-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    .setup-card h2 { margin-bottom: 8px; font-size: 24px; }
+    .setup-card p { color: #666; margin-bottom: 24px; font-size: 14px; line-height: 1.6; }
+    .account-inputs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .account-input-row { display: flex; align-items: center; gap: 8px; }
+    .account-input-row span { font-size: 20px; width: 32px; text-align: center; }
+    .account-input-row input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .account-input-row input:focus { border-color: #833ab4; }
+    .account-input-row input::placeholder { color: #aaa; }
+    .save-btn { width: 100%; padding: 14px; font-size: 16px; }
+    .note {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: #fff3cd;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #856404;
+      line-height: 1.5;
+    }
+    .dashboard { display: none; padding: 16px; }
+    .dashboard.active { display: block; }
+    .view-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .view-btn {
+      padding: 6px 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .view-btn:hover, .view-btn.active {
+      background: rgba(255,255,255,0.95);
+      color: #333;
+      border-color: transparent;
+    }
+    .accounts-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+    .accounts-grid.layout-1 { grid-template-columns: 1fr; max-width: 800px; margin: 0 auto; }
+    .accounts-grid.layout-2 { grid-template-columns: repeat(2, 1fr); }
+    .accounts-grid.layout-3 { grid-template-columns: repeat(3, 1fr); }
+    .account-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .account-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    .account-card-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      color: white;
+    }
+    .account-card-header .username { font-weight: 700; font-size: 15px; }
+    .account-card-header .actions { display: flex; gap: 6px; }
+    .account-card-header .action-btn {
+      background: rgba(255,255,255,0.25);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .account-card-header .action-btn:hover { background: rgba(255,255,255,0.4); }
+    .account-card-body { height: 500px; position: relative; }
+    .iframe-blocked {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 32px;
+      text-align: center;
+      background: #fafafa;
+    }
+    .iframe-blocked .icon { font-size: 48px; margin-bottom: 16px; }
+    .iframe-blocked h3 { margin-bottom: 8px; color: #333; }
+    .iframe-blocked p { color: #666; font-size: 14px; margin-bottom: 16px; line-height: 1.5; }
+    .iframe-blocked .btn { padding: 12px 24px; font-size: 15px; }
+    .quick-links {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #f8f8f8;
+      border-top: 1px solid #eee;
+    }
+    .quick-link {
+      padding: 4px 10px;
+      background: #eee;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #555;
+      transition: all 0.2s;
+    }
+    .quick-link:hover { background: #ddd; }
+    @media (max-width: 768px) {
+      .accounts-grid { grid-template-columns: 1fr !important; }
+      .header h1 { font-size: 16px; }
+      .account-card-body { height: 400px; }
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal h2 { margin-bottom: 16px; }
+    .modal .account-inputs { margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+  <div class="header" id="mainHeader" style="display:none;">
+    <h1>Instagram Multi-Account Viewer</h1>
+    <div class="header-actions">
+      <button class="btn btn-open-all" onclick="openAllInTabs()">全アカウントをタブで開く</button>
+      <button class="btn btn-secondary" onclick="showEditModal()">設定</button>
+    </div>
+  </div>
+  <div class="setup-screen" id="setupScreen">
+    <div class="setup-card">
+      <h2>Instagram アカウント設定</h2>
+      <p>閲覧したいInstagramアカウントのユーザー名を入力してください（@なし）。<br>入力したアカウントのページを一画面で並べて表示します。</p>
+      <div class="account-inputs" id="setupInputs">
+        <div class="account-input-row"><span>1</span><input type="text" placeholder="username1" class="setup-username"></div>
+        <div class="account-input-row"><span>2</span><input type="text" placeholder="username2" class="setup-username"></div>
+        <div class="account-input-row"><span>3</span><input type="text" placeholder="username3" class="setup-username"></div>
+        <div class="account-input-row"><span>4</span><input type="text" placeholder="username4" class="setup-username"></div>
+        <div class="account-input-row"><span>5</span><input type="text" placeholder="username5" class="setup-username"></div>
+      </div>
+      <button class="btn btn-primary save-btn" onclick="saveAccounts()">ダッシュボードを表示</button>
+      <div class="note"><strong>注意:</strong> Instagramはiframeでの埋め込みをブロックするため、各アカウントは「新しいタブで開く」ボタンからアクセスしてください。データはブラウザのローカルストレージに保存され、外部には送信されません。</div>
+    </div>
+  </div>
+  <div class="dashboard" id="dashboard">
+    <div class="view-controls">
+      <button class="view-btn active" onclick="setLayout('auto', this)">自動</button>
+      <button class="view-btn" onclick="setLayout('1', this)">1列</button>
+      <button class="view-btn" onclick="setLayout('2', this)">2列</button>
+      <button class="view-btn" onclick="setLayout('3', this)">3列</button>
+    </div>
+    <div class="accounts-grid" id="accountsGrid"></div>
+  </div>
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h2>アカウント設定</h2>
+      <div class="account-inputs" id="modalInputs"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeEditModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="saveFromModal()">保存</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    var accounts = [];
+    function init() {
+      var saved = localStorage.getItem('insta_accounts');
+      if (saved) {
+        accounts = JSON.parse(saved);
+        if (accounts.length > 0 && accounts.some(function(a) { return a.trim() !== ''; })) {
+          showDashboard();
+          return;
+        }
+      }
+      showSetup();
+    }
+    function showSetup() {
+      document.getElementById('setupScreen').style.display = 'block';
+      document.getElementById('dashboard').classList.remove('active');
+      document.getElementById('mainHeader').style.display = 'none';
+    }
+    function saveAccounts() {
+      var inputs = document.querySelectorAll('.setup-username');
+      accounts = Array.from(inputs).map(function(input) { return input.value.trim().replace('@', ''); });
+      if (!accounts.some(function(a) { return a !== ''; })) {
+        alert('少なくとも1つのアカウント名を入力してください');
+        return;
+      }
+      localStorage.setItem('insta_accounts', JSON.stringify(accounts));
+      showDashboard();
+    }
+    function showDashboard() {
+      document.getElementById('setupScreen').style.display = 'none';
+      document.getElementById('mainHeader').style.display = 'flex';
+      document.getElementById('dashboard').classList.add('active');
+      renderAccounts();
+    }
+    function renderAccounts() {
+      var grid = document.getElementById('accountsGrid');
+      grid.innerHTML = '';
+      accounts.forEach(function(username, index) {
+        if (!username) return;
+        var card = document.createElement('div');
+        card.className = 'account-card';
+        var h = '<div class="account-card-header">';
+        h += '<span class="username">@' + username + '</span>';
+        h += '<div class="actions">';
+        h += '<button class="action-btn" onclick="openInNewTab(\'' + username + '\')" title="新しいタブで開く">&#x2197;</button>';
+        h += '<button class="action-btn" onclick="reloadCard(' + index + ')" title="リロード">&#x21bb;</button>';
+        h += '</div></div>';
+        h += '<div class="account-card-body" id="card-body-' + index + '">';
+        h += '<div class="iframe-blocked">';
+        h += '<div class="icon">&#x1F4F8;</div>';
+        h += '<h3>@' + username + '</h3>';
+        h += '<p>Instagramはiframeでの表示をブロックしています。<br>下のボタンから新しいタブで開いてください。</p>';
+        h += '<button class="btn btn-primary" onclick="openInNewTab(\'' + username + '\')">Instagramで開く</button>';
+        h += '</div></div>';
+        h += '<div class="quick-links">';
+        h += '<button class="quick-link" onclick="openInNewTab(\'' + username + '\')">プロフィール</button>';
+        h += '<button class="quick-link" onclick="openFeed(\'' + username + '\')">フィード</button>';
+        h += '<button class="quick-link" onclick="openStories(\'' + username + '\')">ストーリー</button>';
+        h += '</div>';
+        card.innerHTML = h;
+        grid.appendChild(card);
+      });
+    }
+    function openInNewTab(username) {
+      window.open('https://www.instagram.com/' + username, '_blank');
+    }
+    function openFeed(username) {
+      window.open('https://www.instagram.com/' + username, '_blank');
+    }
+    function openStories(username) {
+      window.open('https://www.instagram.com/stories/' + username + '/', '_blank');
+    }
+    function openAllInTabs() {
+      accounts.forEach(function(username) {
+        if (username) {
+          window.open('https://www.instagram.com/' + username, '_blank');
+        }
+      });
+    }
+    function reloadCard(index) {
+      var body = document.getElementById('card-body-' + index);
+      var iframe = body.querySelector('iframe');
+      if (iframe) { iframe.src = iframe.src; }
+    }
+    function setLayout(cols, btn) {
+      var grid = document.getElementById('accountsGrid');
+      grid.className = 'accounts-grid';
+      if (cols !== 'auto') { grid.classList.add('layout-' + cols); }
+      var btns = document.querySelectorAll('.view-btn');
+      for (var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
+      if (btn) btn.classList.add('active');
+    }
+    function showEditModal() {
+      var container = document.getElementById('modalInputs');
+      container.innerHTML = '';
+      for (var i = 0; i < 5; i++) {
+        var row = '<div class="account-input-row">';
+        row += '<span>' + (i + 1) + '</span>';
+        row += '<input type="text" placeholder="username" class="modal-username" value="' + (accounts[i] || '') + '">';
+        row += '</div>';
+        container.innerHTML += row;
+      }
+      document.getElementById('editModal').classList.add('active');
+    }
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('active');
+    }
+    function saveFromModal() {
+      var inputs = document.querySelectorAll('.modal-username');
+      accounts = Array.from(inputs).map(function(input) { return input.value.trim().replace('@', ''); });
+      localStorage.setItem('insta_accounts', JSON.stringify(accounts));
+      closeEditModal();
+      renderAccounts();
+    }
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) closeEditModal();
+    });
+    init();
+  </script>
+</body>
+</html>
